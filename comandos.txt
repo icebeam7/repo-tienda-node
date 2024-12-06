@@ -1,0 +1,51 @@
+git init
+git add .
+git commit -m "Initial commit"
+
+az login --use-device-code
+
+RESOURCE_GROUP="tienda-nodejs-rg"
+LOCATION="eastus"
+APP_NAME="tienda-nodejs-abcd-xxx"
+PLAN_NAME="tienda-nodejs-plan-xxx"
+
+az group create --name $RESOURCE_GROUP --location $LOCATION
+az appservice plan create --name $PLAN_NAME --resource-group $RESOURCE_GROUP --sku B1 --is-linux
+az webapp create --resource-group $RESOURCE_GROUP --plan $PLAN_NAME --name $APP_NAME --runtime "NODE|20-lts" --startup-file "npm start"
+
+IR AL PORTAL DE AZURE
+git remote add azure GIT_URL_REPO_PASO_ANTERIOR
+
+IR AL PORTAL DE AZURE
+git push azure main:master
+COLOCAR USUARIO Y CONTRASENA OBTENIDAS EN AZURE
+
+az webapp browse --resource-group $RESOURCE_GROUP --name $APP_NAME
+
+
+
+az login --use-device-code
+
+subscriptionId=$(az account show --query id -o tsv)
+
+az ad sp create-for-rbac --name "github-actions-sp2" --role contributor --scopes "/subscriptions/$subscriptionId" --sdk-auth
+
+
+RESOURCE_GROUP="tienda-nodejs-rg"
+APP_NAME="tienda-nodejs-labp-xxx"
+ALERT_NAME="AlertaCPUTime"
+ACTION_GROUP_NAME="GrupoEmail"
+EMAIL_ADDRESS="tony_articuno@hotmail.com"
+
+az monitor action-group create --resource-group $RESOURCE_GROUP \
+    --name $ACTION_GROUP_NAME --short-name "gpoMail" \
+    --action email admin $EMAIL_ADDRESS
+
+az monitor metrics alert create --resource-group $RESOURCE_GROUP \
+    --condition "total CpuTime > 0.10" --name $ALERT_NAME \
+    --scopes $(az webapp show --resource-group $RESOURCE_GROUP \
+    --name $APP_NAME --query id --output tsv) \
+    --window-size 5m --evaluation-frequency 1m \
+    --action $(az monitor action-group show --resource-group $RESOURCE_GROUP \
+    --name $ACTION_GROUP_NAME --query id --output tsv)
+
